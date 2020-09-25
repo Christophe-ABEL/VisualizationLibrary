@@ -62,6 +62,9 @@ add_subdirectory("tools")
 # VLMain
 add_subdirectory("vlMain")
 
+# Example
+# add_subdirectory("examples")
+
 ################################################################################
 # GUI Modules (automatically enabled when their requirements are met)
 ################################################################################
