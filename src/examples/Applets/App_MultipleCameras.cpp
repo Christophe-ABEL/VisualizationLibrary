@@ -47,7 +47,7 @@ public:
 
     // save to be used later
     ref<Renderer> renderer = rendering()->as<Rendering>()->renderer();
-    ref<Framebuffer> framebuffer = rendering()->as<Rendering>()->renderer()->framebuffer();
+    ref<FramebufferObject> framebuffer = rendering()->as<Rendering>()->renderer()->framebuffer();
     // install new rendering tree
     mRenderingTree = new RenderingTree;
     setRendering(mRenderingTree.get());
@@ -109,7 +109,7 @@ public:
       moneky_w[i]->setEffect(wirefx.get());
     }
 
-    for( int i=0; i<mRenderingTree->subRenderings()->size(); ++i )
+    for( size_t i=0; i<mRenderingTree->subRenderings()->size(); ++i )
     {
       mRenderingTree->subRenderings()->at(i)->as<Rendering>()->renderer()->setFramebuffer( framebuffer.get() );
       mRenderingTree->subRenderings()->at(i)->as<Rendering>()->setRenderer( renderer.get() );
@@ -196,7 +196,7 @@ public:
 
   void mouseDownEvent(EMouseButton, int x, int y)
   {
-    for( int i=0; i<mRenderingTree->subRenderings()->size(); ++i )
+    for( size_t i=0; i<mRenderingTree->subRenderings()->size(); ++i )
     {
       int height = mRenderingTree->subRenderings()->at(i)->as<Rendering>()->renderer()->framebuffer()->height();
       if ( mRenderingTree->subRenderings()->at(i)->as<Rendering>()->camera()->viewport()->isPointInside(x,y,height) )

@@ -15,6 +15,7 @@ project(EXAMPLES)
 
 if( VL_GUI_QT4_EXAMPLES OR
     VL_GUI_QT5_EXAMPLES OR
+    VL_GUI_QT6_EXAMPLES OR
     VL_GUI_MFC_EXAMPLES OR
     VL_GUI_WIN32_EXAMPLES OR
     VL_GUI_WXWIDGETS_EXAMPLES OR
@@ -112,6 +113,18 @@ if( VL_GUI_QT4_EXAMPLES OR
     VL_INSTALL_TARGET(vlQt5_tests)
   endif()
 
+  if(VL_GUI_QT6_EXAMPLES)
+    # Example
+    add_executable(vlQt6_example WIN32 Qt6_example.cpp Applets/App_RotatingCube.hpp)
+    target_link_libraries(vlQt6_example VLQt6 ${VL_LIBS_EXAMPLE} Qt6::Widgets Qt6::OpenGLWidgets)
+    VL_INSTALL_TARGET(vlQt6_example)
+
+    # Tests
+    add_executable(vlQt6_tests WIN32 Qt6_tests.cpp )
+    target_link_libraries(vlQt6_tests VLApplets VLQt6 ${VL_LIBS_TESTS} Qt6::Widgets Qt6::OpenGLWidgets)
+    VL_INSTALL_TARGET(vlQt6_tests)
+  endif()
+
   if (VL_GUI_WIN32_EXAMPLES)
   	# Direct
   	add_executable(vlWin32_direct WIN32 Win32_direct.cpp)
@@ -167,30 +180,6 @@ if( VL_GUI_QT4_EXAMPLES OR
       add_executable(vlWX_tests WIN32 WX_tests.cpp )
       target_link_libraries(vlWX_tests VLApplets VLWX ${VL_LIBS_TESTS} ${wxWidgets_LIBRARIES})
       VL_INSTALL_TARGET(vlWX_tests)
-  endif()
-
-  if (VL_GUI_GLES_EXAMPLES AND VL_OPENGL_ES1)
-  	# Example
-  	add_executable(vlGLES1_example GLES1_example.cpp)
-  	target_link_libraries(vlGLES1_example VLEGL ${VL_LIBS_EXAMPLE})
-  	VL_INSTALL_TARGET(vlGLES1_example)
-
-  	# Tests
-  	add_executable(vlGLES1_tests GLES1_tests.cpp)
-  	target_link_libraries(vlGLES1_tests VLApplets VLEGL ${VL_LIBS_TESTS})
-  	VL_INSTALL_TARGET(vlGLES1_tests)
-  endif()
-
-  if (VL_GUI_GLES_EXAMPLES AND VL_OPENGL_ES2)
-  	# Example
-  	add_executable(vlGLES2_example GLES2_example.cpp)
-  	target_link_libraries(vlGLES2_example VLEGL ${VL_LIBS_EXAMPLE})
-  	VL_INSTALL_TARGET(vlGLES2_example)
-
-  	# Tests
-  	add_executable(vlGLES2_tests GLES2_tests.cpp)
-  	target_link_libraries(vlGLES2_tests VLApplets VLEGL ${VL_LIBS_TESTS})
-  	VL_INSTALL_TARGET(vlGLES2_tests)
   endif()
 
 endif()

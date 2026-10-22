@@ -46,7 +46,7 @@ ActorTreeAbstract::ActorTreeAbstract()
 void ActorTreeAbstract::computeAABB()
 {
   AABB aabb;
-  for(int i=0; i<actors()->size(); ++i)
+  for(size_t i=0; i<actors()->size(); ++i)
   {
     actors()->at(i)->computeBounds();
     aabb += actors()->at(i)->boundingBox();
@@ -64,7 +64,7 @@ void ActorTreeAbstract::computeAABB()
 //-----------------------------------------------------------------------------
 void ActorTreeAbstract::extractActors(ActorCollection& list)
 {
-  for( int i = 0; i < actors()->size(); ++i ) {
+  for( size_t i = 0; i < actors()->size(); ++i ) {
     list.push_back( actors()->at(i) );
   }
 
@@ -83,7 +83,7 @@ void ActorTreeAbstract::extractVisibleActors(ActorCollection& list, const Camera
   }
 
   // Cull / extract this node's Actors
-  for( int i = 0; i < actors()->size(); ++i )
+  for( size_t i = 0; i < actors()->size(); ++i )
   {
     if ( actors()->at(i)->isEnabled() && ( enable_mask & actors()->at(i)->enableMask() ) )
     {
@@ -106,8 +106,8 @@ void ActorTreeAbstract::extractVisibleActors(ActorCollection& list, const Camera
 //-----------------------------------------------------------------------------
 ActorTreeAbstract* ActorTreeAbstract::eraseActor(Actor* actor)
 {
-  int pos = actors()->find(actor);
-  if (pos != -1)
+  size_t pos = actors()->find(actor);
+  if (pos != Collection<void>::not_found)
   {
     actors()->eraseAt(pos);
     return this;

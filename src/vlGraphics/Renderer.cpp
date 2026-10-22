@@ -31,6 +31,7 @@
 
 #include <vlCore/GlobalSettings.hpp>
 #include <vlCore/Say.hpp>
+#include <vlCore/VisualizationLibrary.hpp>
 #include <vlGraphics/Renderer.hpp>
 #include <vlGraphics/OpenGLContext.hpp>
 #include <vlGraphics/GLSL.hpp>
@@ -347,9 +348,9 @@ const RenderQueue* Renderer::renderRaw(const RenderQueue* render_queue, Camera* 
   opengl_context->applyRenderStates( mDummyStateSet.get(), NULL ); VL_CHECK_OGL();
 
   // enabled texture unit #0
-  VL_glActiveTexture( GL_TEXTURE0 ); VL_CHECK_OGL();
+  glActiveTexture( GL_TEXTURE0 ); VL_CHECK_OGL();
   if ( Has_Fixed_Function_Pipeline ) {
-    VL_glClientActiveTexture( GL_TEXTURE0 ); VL_CHECK_OGL();
+    glClientActiveTexture( GL_TEXTURE0 ); VL_CHECK_OGL();
   }
 
   // disable scissor test
@@ -364,6 +365,8 @@ const RenderQueue* Renderer::renderRaw(const RenderQueue* render_queue, Camera* 
 const RenderQueue* Renderer::render(const RenderQueue* render_queue, Camera* camera, real frame_clock)
 {
   VL_CHECK_OGL()
+  // FIXME: make this work, we got a linking error atm.
+  //VL_CHECK( vl::VisualizationLibrary::isGraphicsInitialized() )
 
   // skip if renderer is disabled
 

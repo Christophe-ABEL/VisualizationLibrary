@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
   int y = 10;
   int width = 512;
   int height= 512;
-  qt5_window->initQt5Widget( "Visualization Library on Qt5 - Rotating Cube", format, NULL, x, y, width, height );
+  qt5_window->initQt5Widget( "Visualization Library on Qt 5 - Rotating Cube", format, NULL, x, y, width, height );
   /* show the window */
   qt5_window->show();
 

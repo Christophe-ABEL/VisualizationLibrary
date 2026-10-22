@@ -47,7 +47,7 @@ void RayIntersector::intersect(const Ray& ray, SceneManager* scene_manager)
 void RayIntersector::intersect()
 {
   mIntersections.clear();
-  for(int i=0; i<actors()->size(); ++i)
+  for(size_t i=0; i<actors()->size(); ++i)
   {
     if (!frustum().cull(actors()->at(i)->boundingBox()))
     {
@@ -71,7 +71,7 @@ void RayIntersector::intersectGeometry(Actor* act, Geometry* geom)
   if (posarr)
   {
     mat4 matrix = act->transform() ? act->transform()->worldMatrix() : mat4();
-    for(int i=0; i<geom->drawCalls().size(); ++i)
+    for(size_t i=0; i<geom->drawCalls().size(); ++i)
     {
       DrawCall* prim = geom->drawCalls().at(i);
       int itri = 0;

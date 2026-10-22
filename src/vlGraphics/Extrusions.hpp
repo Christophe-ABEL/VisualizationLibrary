@@ -37,17 +37,20 @@
 #include <vlCore/Vector3.hpp>
 #include <vlCore/Matrix4.hpp>
 #include <vector>
-#include <vlGraphics/ExtrusionPrimitives.hpp>
+//#include <vlGraphics/ExtrusionPrimitives.hpp>
 
 namespace vl
 {
 
   /**
-   * The Extrusion class generates a Geometry extruding a silhouette along a path.
+   * The Extrusions class generates a Geometry extruding a silhouette along a path.
+   * 
+   * As opposed to the legacy Extrusion class, this class allows you to extrude multiple contours.
+   * 
    * \sa
    *
    * - \ref pagGuideExtrusion "Extrusion Tutorial" for a practical example of how to use extrusions.
-   * - Interpolator, LinearInterpolator, CatmullRomInterpolator to generate silhouettes and extrusion paths.
+   * - Extrusion, Interpolator, LinearInterpolator, CatmullRomInterpolator to generate silhouettes and extrusion paths.
    *
    * <img src="pics/pagGuideExtrusion3.jpg">
    */

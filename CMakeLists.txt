@@ -14,7 +14,7 @@
 
 # Current Version
 set(VL_VERSION_MAJOR "2")
-set(VL_VERSION_MINOR "0")
+set(VL_VERSION_MINOR "2")
 set(VL_VERSION_PATCH "0")
 set(VL_VERSION "${VL_VERSION_MAJOR}.${VL_VERSION_MINOR}")
 set(VL_VERSION_FULL "${VL_VERSION_MAJOR}.${VL_VERSION_MINOR}.${VL_VERSION_PATCH}")
@@ -34,9 +34,10 @@ add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP4>)
 ################################################################################
 
 set(VL_USER_DATA_OBJECT 0 CACHE BOOL "Enable vl::Object user data.")
-set(VL_USER_DATA_ACTOR 0 CACHE BOOL "Enable vl::Object user data.")
-set(VL_USER_DATA_TRANSFORM 0 CACHE BOOL "Enable vl::Object user data.")
-set(VL_USER_DATA_SHADER 0 CACHE BOOL "Enable vl::Object user data.")
+set(VL_USER_VOIDDATA_ACTOR 0 CACHE BOOL "Enable vl::Actor user data as void.")
+set(VL_USER_DATA_ACTOR 0 CACHE BOOL "Enable vl::Actor user data.")
+set(VL_USER_DATA_TRANSFORM 0 CACHE BOOL "Enable vl::Transform user data.")
+set(VL_USER_DATA_SHADER 0 CACHE BOOL "Enable vl::Shader user data.")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(VL_PLATFORM_MACOSX 1)
@@ -51,18 +52,12 @@ endif()
 message(STATUS "System detected: \"${CMAKE_SYSTEM_NAME}\"")
 
 # OpenGL, OpenGL ES 1 or OpenGL ES 2 mode
-set(VL_OPENGL_MODE "OPENGL" CACHE STRING "Set it to OPENGL, OPENGL_ES1 or OPENGL_ES2 to build VL for OpenGL, OpenGL ES 1.x or OpenGL ES 2.x")
+set(VL_OPENGL_MODE "OPENGL" CACHE STRING "Only value supported for now is OPENGL")
 if( VL_OPENGL_MODE STREQUAL "OPENGL")
 	set(VL_OPENGL 1)
 	message(STATUS "Configuring for OpenGL 1.x/2.x/3.x/4.x")
-elseif( VL_OPENGL_MODE STREQUAL  "OPENGL_ES1")
-	set(VL_OPENGL_ES1 1)
-	message(STATUS "Configuring for OpenGL ES 1.x")
-elseif( VL_OPENGL_MODE STREQUAL  "OPENGL_ES2")
-	set(VL_OPENGL_ES2 1)
-	message(STATUS "Configuring for OpenGL ES 2.x")
 else()
-	message(FATAL_ERROR "Invalid VL_OPENGL_MODE! Valid modes are: OPENGL, OPENGL_ES1, OPENGL_ES2.")
+	message(FATAL_ERROR "Invalid VL_OPENGL_MODE! Valid modes are: OPENGL")
 endif()
 
 ################################################################################
@@ -127,13 +122,9 @@ endif()
 # Required Dependencies
 
 if( VL_OPENGL_MODE STREQUAL "OPENGL")
+	set(OpenGL_GL_PREFERENCE GLVND)
 	find_package(OpenGL REQUIRED)
 	set(VL_OPENGL_LIBRARIES ${OPENGL_LIBRARIES})
-endif()
-
-if( VL_OPENGL_ES1 OR VL_OPENGL_ES2 )
-	include( SetupGLES )
-	set(VL_OPENGL_LIBRARIES ${VL_GLES_LIBRARY} ${VL_EGL_LIBRARY})
 endif()
 
 ################################################################################

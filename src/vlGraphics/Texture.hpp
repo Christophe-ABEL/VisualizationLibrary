@@ -46,14 +46,30 @@ namespace vl
   //------------------------------------------------------------------------------
   /** Wraps the OpenGL function glTexParameter(), see also http://www.opengl.org/sdk/docs/man/xhtml/glTexParameter.xml for more information.
    *
+   * References
+   * - https://www.khronos.org/opengl/wiki/Texture
+   * - https://www.khronos.org/opengl/wiki/Texture_Storage
+   * - https://www.khronos.org/opengl/wiki/Sampler_(GLSL)
+   * - https://www.khronos.org/opengl/wiki/Sampler_Object
+   * - https://www.khronos.org/opengl/wiki/Image_Format
+   * - https://www.khronos.org/opengl/wiki/Pixel_Transfer
+   * - https://www.khronos.org/opengl/wiki/Cubemap_Texture
+   * - https://www.khronos.org/opengl/wiki/Array_Texture
+   * - https://www.khronos.org/opengl/wiki/Multisample_Texture
+   * - https://www.khronos.org/opengl/wiki/Rectangle_Texture
+   * - https://www.khronos.org/opengl/wiki/3D_Texture
+   * - https://www.khronos.org/opengl/wiki/Buffer_Texture
+   * 
    * \note
    * A TexParameter defines a set of variables associated to a Texture while
-   * TexGen and TexEnv define a set of variables associated to a TextureSampler.
+   * TexGen and TexEnv define a set of variables associated to a TextureImageUnit.
    *
    * \sa
-   * - Texture::getTexParameter()
-   * - Texture
-   * - TextureSampler
+   * - Mipmap generation: TexParameter::setGenerateMipmap(), Texture::setMipLevel()
+   * - Texture, Texture::createTexture*() functions, Texture::prepareTexture*() functions
+   * - TexParameter, Texture::getTexParameter()
+   * - TextureImageUnit
+   * - TextureMatrix
    * - TexGen
    * - TexEnv
    * - Shader
@@ -114,27 +130,46 @@ namespace vl
     mutable bool mDirty;
   };
   //------------------------------------------------------------------------------
-  class TextureSampler;
+  class TextureImageUnit;
   //------------------------------------------------------------------------------
   // Texture
   //------------------------------------------------------------------------------
   /** Wraps an OpenGL texture object representing and managing all the supported texture types.
    *
+   * Use the Texture::prepareTexture*() functions when you want to defer the creation of OpenGL texture object 
+   * for example in cases where you don't have yet an OpenGL context available. Use Texture::createTexture*() functions
+   * when you have an OpenGL context available and want to create immediately the GL texture objects.
+   * 
    * \remarks
    * Many of the parameters used to create a Textures are the same used by glTexImage1D/2D/3D etc. See the following for more information:
    * - http://www.opengl.org/sdk/docs/man/xhtml/glTexImage1D.xml
    * - http://www.opengl.org/sdk/docs/man/xhtml/glTexImage2D.xml
    * - http://www.opengl.org/sdk/docs/man/xhtml/glTexImage3D.xml
-   *
+   * 
+   * References
+   * - https://www.khronos.org/opengl/wiki/Texture
+   * - https://www.khronos.org/opengl/wiki/Texture_Storage
+   * - https://www.khronos.org/opengl/wiki/Sampler_(GLSL)
+   * - https://www.khronos.org/opengl/wiki/Sampler_Object
+   * - https://www.khronos.org/opengl/wiki/Image_Format
+   * - https://www.khronos.org/opengl/wiki/Pixel_Transfer
+   * - https://www.khronos.org/opengl/wiki/Cubemap_Texture
+   * - https://www.khronos.org/opengl/wiki/Array_Texture
+   * - https://www.khronos.org/opengl/wiki/Multisample_Texture
+   * - https://www.khronos.org/opengl/wiki/Rectangle_Texture
+   * - https://www.khronos.org/opengl/wiki/3D_Texture
+   * - https://www.khronos.org/opengl/wiki/Buffer_Texture
+   * 
    * \note
    * A TexParameter defines a set of variables associated to a Texture while
-   * TexGen and TexEnv define a set of variables associated to a TextureSampler.
+   * TexGen and TexEnv define a set of variables associated to a TextureImageUnit.
    *
    * \sa
-   * - getTexParameter() and TexParameter
-   * - createTexture()
-   * - setMipLevel()
-   * - TextureSampler
+   * - Mipmap generation: TexParameter::setGenerateMipmap(), Texture::setMipLevel()
+   * - Texture, Texture::createTexture*() functions, Texture::prepareTexture*() functions
+   * - TexParameter, Texture::getTexParameter()
+   * - TextureImageUnit
+   * - TextureMatrix
    * - TexGen
    * - TexEnv
    * - Shader
@@ -143,7 +178,7 @@ namespace vl
   class VLGRAPHICS_EXPORT Texture: public Object
   {
     VL_INSTRUMENT_CLASS(vl::Texture, Object)
-    friend class TextureSampler;
+    friend class TextureImageUnit;
 
   public:
     /** SetupParams wraps all the parameters needed to crate a Texture.
@@ -247,9 +282,6 @@ namespace vl
 
     /** The TexParameter object associated to a Texture. */
     const TexParameter* getTexParameter() const { return mTexParameter.get(); }
-
-    /** The TexParameter belonging to a TextureSampler that is currently overriding the Texture's own TexParameter. */
-    const TexParameter* getTexParameterOverride() const { return mTexParameterOverride.get(); }
 
     /** The buffer object bound to a buffer object texture. */
     BufferObject* bufferObject() { return mBufferObject.get(); }
@@ -759,7 +791,6 @@ namespace vl
     unsigned int mHandle;
     bool mManaged;
     ref<TexParameter> mTexParameter;
-    mutable ref<TexParameter> mTexParameterOverride;
     ref<SetupParams> mSetupParams;
     ref<BufferObject> mBufferObject;
     ETextureFormat mFormat;

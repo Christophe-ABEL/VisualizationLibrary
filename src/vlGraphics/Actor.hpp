@@ -151,7 +151,7 @@ namespace vl
               mActorUserData = NULL;
     #endif
     #ifdef VL_USER_VOIDDATA_ACTOR
-              mActorUserData = NULL;
+              mActorVoidUserData = NULL;
     #endif
     }
 
@@ -378,7 +378,7 @@ namespace vl
     /** Calls all the onActorRenderStarted() of all the ActorEventCallback installed on this Actor. */
     void dispatchOnActorRenderStarted( real frame_clock, const Camera* camera, Renderable* renderable, const Shader* shader, int pass)
     {
-      for(int i=0; i<actorEventCallbacks()->size(); ++i)
+      for(size_t i=0; i<actorEventCallbacks()->size(); ++i)
       {
         ActorEventCallback& cb = *actorEventCallbacks()->at(i);
         if (cb.isEnabled())
@@ -389,7 +389,7 @@ namespace vl
     /** Calls all the onActorDelete() of all the ActorEventCallback installed on this Actor. */
     void dispatchOnActorDelete()
     {
-      for(int i=0; i<actorEventCallbacks()->size(); ++i)
+      for(size_t i=0; i<actorEventCallbacks()->size(); ++i)
       {
         ActorEventCallback& cb = *actorEventCallbacks()->at(i);
         cb.onActorDelete(this);
@@ -458,12 +458,12 @@ namespace vl
     #endif
     #ifdef VL_USER_VOIDDATA_ACTOR
       public:
-          const void* actorUserData() const { return mActorUserData; }
-          void* actorUserData() { return mActorUserData; }
-          void setActorUserData(void* user_data) { mActorUserData = user_data; }
+          const void* actorVoidUserData() const { return mActorVoidUserData; }
+          void* actorVoidUserData() { return mActorVoidUserData; }
+          void setActorVoidUserData(void* user_data) { mActorVoidUserData = user_data; }
 
       private:
-          void* mActorUserData;
+          void* mActorVoidUserData;
     #endif
 
   protected:

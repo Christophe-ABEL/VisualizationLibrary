@@ -58,27 +58,33 @@ BEGIN_EVENT_TABLE(WXGLCanvas, wxGLCanvas)
   EVT_DROP_FILES          (WXGLCanvas::OnDropFiles)
 END_EVENT_TABLE()
 //-----------------------------------------------------------------------------
-WXGLCanvas::~WXGLCanvas()
-{
-  dispatchDestroyEvent();
-}
-//-----------------------------------------------------------------------------
 WXGLCanvas::WXGLCanvas(
   wxWindow *parent,
-  const wxGLContext *shared,
   wxWindowID id,
+  //const wxGLContext *shared,
+  const int *attribList,
   const wxPoint& pos,
   const wxSize& size,
   long style,
-  int *attribList,
   const wxString& name,
   const wxPalette& palette):
-wxGLCanvas(parent, shared, id, pos, size, style, name, attribList)
+wxGLCanvas(parent, id, attribList, pos, size, style, name, palette)
 {
   // let wxWidgets manage the deletion of this object
   setAutomaticDelete(false);
   mMouseCount = 0;
   DragAcceptFiles(true);
+  
+  mWXGLContext = new wxGLContext(this);
+}
+//-----------------------------------------------------------------------------
+WXGLCanvas::~WXGLCanvas()
+{
+  dispatchDestroyEvent();
+  if ( mWXGLContext ) {
+    delete mWXGLContext;
+    mWXGLContext = NULL;
+  }
 }
 //-----------------------------------------------------------------------------
 void WXGLCanvas::OnDropFiles(wxDropFilesEvent& ev)
@@ -158,7 +164,7 @@ void WXGLCanvas::OnMouseDown( wxMouseEvent& ev )
 void WXGLCanvas::OnSize(wxSizeEvent& ev)
 {
   // this is also necessary to update the context on some platforms
-  wxGLCanvas::OnSize(ev);
+  wxWindow::SetSize(ev.GetSize());
   wxSize s = GetClientSize();
   dispatchResizeEvent(s.x, s.y);
 }
@@ -237,7 +243,7 @@ void translateKey(int& unicode, EKey& key, const wxKeyEvent& ev)
     case ',': key = Key_Comma; break;
     case '-': key = Key_Minus; break;
     case '.': key = Key_Period; break;
-    case '\\': key = Key_Slash; break;
+    case '\\': key = Key_BackSlash; break;
     case ':': key = Key_Colon; break;
     case ';': key = Key_Semicolon; break;
     case '<': key = Key_Less; break;
@@ -246,7 +252,7 @@ void translateKey(int& unicode, EKey& key, const wxKeyEvent& ev)
     case '?': key = Key_Question; break;
     case '@': key = Key_At; break;
     case '[': key = Key_LeftBracket; break;
-    case '/': key = Key_BackSlash; break;
+    case '/': key = Key_Slash; break;
     case ']': key = Key_RightBracket; break;
     case '|': key = Key_Caret; break;
     case '_': key = Key_Underscore; break;
@@ -359,32 +365,28 @@ bool WXGLCanvas::setFullscreen(bool fullscreen)
 void WXGLCanvas::quitApplication()
 {
   wxApp* app = dynamic_cast<wxApp*>(wxApp::GetInstance());
-  if (app)
+  if ( app ) 
+  {
     app->ExitMainLoop();
+  }
   eraseAllEventListeners();
 }
 //-----------------------------------------------------------------------------
 void WXGLCanvas::makeCurrent()
 {
-  #ifndef __WXMOTIF__
-    if (!GetContext()) return;
-  #endif
-
-  SetCurrent();
+  if ( getWXGLContext() ) {
+    getWXGLContext()->SetCurrent( *this );
+  }
 }
 //-----------------------------------------------------------------------------
 void WXGLCanvas::swapBuffers()
 {
-  #ifndef __WXMOTIF__
-    if (!GetContext()) return;
-  #endif
-
-  SwapBuffers();
+  wxGLCanvas::SwapBuffers();
 }
 //-----------------------------------------------------------------------------
 void WXGLCanvas::getFocus()
 {
-  SetFocus();
+  wxGLCanvas::SetFocus();
 }
 //-----------------------------------------------------------------------------
 void WXGLCanvas::setMousePosition(int x, int y)
@@ -433,6 +435,12 @@ ivec2 WXGLCanvas::position() const
 {
   wxPoint pt = GetPosition();
   return ivec2(pt.x, pt.y);
+}
+//-----------------------------------------------------------------------------
+ivec2 WXGLCanvas::size() const
+{
+  wxSize s = GetClientSize();
+  return ivec2(s.GetWidth(), s.GetHeight());
 }
 //-----------------------------------------------------------------------------
 void WXGLCanvas::setMouseVisible(bool visible)

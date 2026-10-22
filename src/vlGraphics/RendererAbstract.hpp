@@ -80,16 +80,16 @@ namespace vl
     virtual const RenderQueue* render(const RenderQueue* in_render_queue, Camera* camera, real frame_clock) = 0;
 
     /** The Framebuffer on which the rendering is performed. */
-    virtual const Framebuffer* framebuffer() const = 0;
+    virtual const FramebufferObject* framebuffer() const = 0;
 
     /** The Framebuffer on which the rendering is performed. */
-    virtual Framebuffer* framebuffer() = 0;
+    virtual FramebufferObject* framebuffer() = 0;
 
     /** Dispatches the onRendererStarted() event to the registered RenderEventCallback objects. */
     void dispatchOnRendererStarted()
     {
       Collection<RenderEventCallback>& cb = *mOnStartedCallbacks;
-      for(int i=0; i<cb.size(); ++i)
+      for(size_t i=0; i<cb.size(); ++i)
       {
         if ( cb[i]->isEnabled() && cb[i]->onRendererStarted(this) && cb[i]->removeAfterCall() )
         {
@@ -103,7 +103,7 @@ namespace vl
     void dispatchOnRendererFinished()
     {
       Collection<RenderEventCallback>& cb = *mOnFinishedCallbacks;
-      for(int i=0; i<cb.size(); ++i)
+      for(size_t i=0; i<cb.size(); ++i)
       {
         if ( cb[i]->isEnabled() && cb[i]->onRendererFinished(this) && cb[i]->removeAfterCall() )
         {

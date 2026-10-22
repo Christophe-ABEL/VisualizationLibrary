@@ -33,6 +33,7 @@
 #include <vlGraphics/GeometryPrimitives.hpp>
 #include <vlGraphics/Text.hpp>
 #include <vlGraphics/GLSL.hpp>
+#include <vlCore/OpenGLDefs.hpp>
 #include <vlGraphics/FontManager.hpp>
 
 using namespace vl;
@@ -109,10 +110,10 @@ public:
   virtual void updateScene()
   {
     openglContext()->useGLSLProgram( mGLSLProgram.get() );
-    glUniform1f(mGLSLProgram->getUniformLocation("ColorOffset"), mColorOffset = (float)fract(Time::currentTime() * 0.5) );
-    glUniform1f(mGLSLProgram->getUniformLocation("Zoom"),    mZoom);
-    glUniform1f(mGLSLProgram->getUniformLocation("Xcenter"), mXcenter);
-    glUniform1f(mGLSLProgram->getUniformLocation("Ycenter"), mYcenter);
+    vl::glUniform1f((GLint)mGLSLProgram->getUniformLocation("ColorOffset"), (GLfloat)(mColorOffset = (float)fract(Time::currentTime() * 0.5)) );
+    vl::glUniform1f(mGLSLProgram->getUniformLocation("Zoom"),    mZoom);
+    vl::glUniform1f(mGLSLProgram->getUniformLocation("Xcenter"), mXcenter);
+    vl::glUniform1f(mGLSLProgram->getUniformLocation("Ycenter"), mYcenter);
   }
 
   void updateText()
@@ -234,19 +235,19 @@ public:
     mTexture->prepareTexture1D( mSpectrum1.get(), TF_RGBA, false, false );
     mTexture->getTexParameter()->setMagFilter(TPF_NEAREST);
     mTexture->getTexParameter()->setMinFilter(TPF_NEAREST);
-    effect->shader()->gocTextureSampler(0)->setTexture( mTexture.get() );
+    effect->shader()->gocTextureImageUnit(0)->setTexture( mTexture.get() );
 
     mGLSLProgram = effect->shader()->gocGLSLProgram();
     mGLSLProgram->attachShader( new GLSLVertexShader("/glsl/mandelbrot.vs") );
     mGLSLProgram->attachShader( new GLSLFragmentShader("/glsl/mandelbrot.fs") );
     mGLSLProgram->linkProgram();
     openglContext()->useGLSLProgram( mGLSLProgram.get() );
-    glUniform1f(mGLSLProgram->getUniformLocation("ColorOffset"), mColorOffset = (float)fract(Time::currentTime() * 0.5) );
-    glUniform3f(mGLSLProgram->getUniformLocation("InnerColor"),  0,0,0 );
-    glUniform1f(mGLSLProgram->getUniformLocation("Zoom"),    mZoom);
-    glUniform1f(mGLSLProgram->getUniformLocation("Xcenter"), mXcenter);
-    glUniform1f(mGLSLProgram->getUniformLocation("Ycenter"), mYcenter);
-    glUniform1f(mGLSLProgram->getUniformLocation("MaxIterations"), mMaxIterations);
+    vl::glUniform1f(mGLSLProgram->getUniformLocation("ColorOffset"), mColorOffset = (float)fract(Time::currentTime() * 0.5) );
+    vl::glUniform3f(mGLSLProgram->getUniformLocation("InnerColor"),  0,0,0 );
+    vl::glUniform1f(mGLSLProgram->getUniformLocation("Zoom"),    mZoom);
+    vl::glUniform1f(mGLSLProgram->getUniformLocation("Xcenter"), mXcenter);
+    vl::glUniform1f(mGLSLProgram->getUniformLocation("Ycenter"), mYcenter);
+    vl::glUniform1f(mGLSLProgram->getUniformLocation("MaxIterations"), mMaxIterations);
     VL_CHECK_OGL();
   }
 

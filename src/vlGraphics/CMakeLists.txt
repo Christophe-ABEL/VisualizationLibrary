@@ -28,10 +28,14 @@ file(GLOB VLGRAPHICS_GL_INC "GL/*.hpp")
 if( NOT VL_OPENGL )
 	list(REMOVE_ITEM VLGRAPHICS_SRC "${VLGRAPHICS_SOURCE_DIR}/Tessellator.cpp")
 	list(REMOVE_ITEM VLGRAPHICS_INC "${VLGRAPHICS_SOURCE_DIR}/Tessellator.hpp")
+	message(STATUS "Removing Tessellator class, not supported in OpenGL ES 1.x and 2.x (requires GLU)")
 
 	list(REMOVE_ITEM VLGRAPHICS_SRC "${VLGRAPHICS_SOURCE_DIR}/Extrusion.cpp")
 	list(REMOVE_ITEM VLGRAPHICS_INC "${VLGRAPHICS_SOURCE_DIR}/Extrusion.hpp")
-	message(STATUS "Removing Tessellator class, not supported in OpenGL ES 1.x and 2.x (requires GLU)")
+	list(REMOVE_ITEM VLGRAPHICS_SRC "${VLGRAPHICS_SOURCE_DIR}/Extrusions.cpp")
+	list(REMOVE_ITEM VLGRAPHICS_INC "${VLGRAPHICS_SOURCE_DIR}/Extrusions.hpp")
+	list(REMOVE_ITEM VLGRAPHICS_SRC "${VLGRAPHICS_SOURCE_DIR}/ExtrusionPrimitives.hpp")
+	message(STATUS "Removing Extrusion classes, not supported in OpenGL ES 1.x and 2.x (requires GLU)")
 endif()
 
 # Handle extras added by plugins
@@ -42,17 +46,13 @@ include_directories(${_INCLUDE_DIRS})
 
 # Khronos OpenGL headers
 set(KHRONOS_DIR "${3RDPARTY_DIR}/Khronos")
-set(KHRONOS_INC ${KHRONOS_DIR}/GL/mesa_gl.h
+set(KHRONOS_INC ${KHRONOS_DIR}/GL/mesa_gl_1_1_only.h
+				${KHRONOS_DIR}/GL/glcorearb.h
 				${KHRONOS_DIR}/GL/khronos_glext.h
+				${KHRONOS_DIR}/GL/khronos_glxext.h
 				${KHRONOS_DIR}/GL/khronos_wglext.h
-				${KHRONOS_DIR}/GLES/gles_extra_defines.h
-				${KHRONOS_DIR}/GLES/khronos_gl.h
-				${KHRONOS_DIR}/GLES/khronos_glext.h
-				${KHRONOS_DIR}/GLES/khronos_glplatform.h
-				${KHRONOS_DIR}/GLES2/gles_extra_defines.h
-				${KHRONOS_DIR}/GLES2/khronos_gl2.h
-				${KHRONOS_DIR}/GLES2/khronos_gl2ext.h
-				${KHRONOS_DIR}/GLES2/khronos_gl2platform.h)
+				${KHRONOS_DIR}/KHR/khrplatform.h
+)
 
 add_library(VLGraphics ${VL_SHARED_OR_STATIC} ${VLGRAPHICS_SRC} ${VLGRAPHICS_INC} ${KHRONOS_INC} ${_SOURCES})
 VL_DEFAULT_TARGET_PROPERTIES(VLGraphics)

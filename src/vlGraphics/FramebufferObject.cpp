@@ -55,18 +55,142 @@ namespace
       glGetIntegerv( GL_FRAMEBUFFER_BINDING, &mPrevFBO ); VL_CHECK_OGL()
 
       // binds this FBO
-      VL_glBindFramebuffer( GL_FRAMEBUFFER, fbo->handle() ); VL_CHECK_OGL()
+      glBindFramebuffer( GL_FRAMEBUFFER, fbo->handle() ); VL_CHECK_OGL()
     }
 
     ~ScopedFBOBinding()
     {
       // restore the FBO
-      VL_glBindFramebuffer( GL_FRAMEBUFFER, mPrevFBO ); VL_CHECK_OGL()
+      glBindFramebuffer( GL_FRAMEBUFFER, mPrevFBO ); VL_CHECK_OGL()
     }
   };
 }
 //-----------------------------------------------------------------------------
 // FramebufferObject
+//-----------------------------------------------------------------------------
+bool FramebufferObject::checkDrawBuffers() const
+{
+  std::map<int, const char*> fbo_attachments;
+  
+  fbo_attachments[GL_NONE]        = "GL_NONE"; 
+  fbo_attachments[GL_BACK_LEFT]   = "GL_BACK_LEFT";
+  fbo_attachments[GL_BACK_RIGHT]  = "GL_BACK_RIGHT";
+  fbo_attachments[GL_FRONT_LEFT]  = "GL_FRONT_LEFT";
+  fbo_attachments[GL_FRONT_RIGHT] = "GL_FRONT_RIGHT";
+  fbo_attachments[GL_AUX0] = "GL_AUX0";
+  fbo_attachments[GL_AUX1] = "GL_AUX1";
+  fbo_attachments[GL_AUX2] = "GL_AUX2";
+  fbo_attachments[GL_AUX3] = "GL_AUX3";
+  fbo_attachments[GL_COLOR_ATTACHMENT0]  = "GL_COLOR_ATTACHMENT0"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT1]  = "GL_COLOR_ATTACHMENT1"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT2]  = "GL_COLOR_ATTACHMENT2"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT3]  = "GL_COLOR_ATTACHMENT3"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT4]  = "GL_COLOR_ATTACHMENT4"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT5]  = "GL_COLOR_ATTACHMENT5"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT6]  = "GL_COLOR_ATTACHMENT6"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT7]  = "GL_COLOR_ATTACHMENT7"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT8]  = "GL_COLOR_ATTACHMENT8"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT9]  = "GL_COLOR_ATTACHMENT9"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT10] = "GL_COLOR_ATTACHMENT10"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT11] = "GL_COLOR_ATTACHMENT11"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT12] = "GL_COLOR_ATTACHMENT12"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT13] = "GL_COLOR_ATTACHMENT13"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT14] = "GL_COLOR_ATTACHMENT14"; 
+  fbo_attachments[GL_COLOR_ATTACHMENT15] = "GL_COLOR_ATTACHMENT15"; 
+
+  int fbo = 0;
+  if (Has_GL_EXT_framebuffer_object||Has_GL_ARB_framebuffer_object)
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbo);
+
+  if (fbo)
+  {
+    std::set<GLenum> legal;
+    legal.insert(GL_NONE);
+    legal.insert(GL_COLOR_ATTACHMENT0);
+    legal.insert(GL_COLOR_ATTACHMENT1);
+    legal.insert(GL_COLOR_ATTACHMENT2);
+    legal.insert(GL_COLOR_ATTACHMENT3);
+    legal.insert(GL_COLOR_ATTACHMENT4);
+    legal.insert(GL_COLOR_ATTACHMENT5);
+    legal.insert(GL_COLOR_ATTACHMENT6);
+    legal.insert(GL_COLOR_ATTACHMENT7);
+    legal.insert(GL_COLOR_ATTACHMENT8);
+    legal.insert(GL_COLOR_ATTACHMENT9);
+    legal.insert(GL_COLOR_ATTACHMENT10);
+    legal.insert(GL_COLOR_ATTACHMENT11);
+    legal.insert(GL_COLOR_ATTACHMENT12);
+    legal.insert(GL_COLOR_ATTACHMENT13);
+    legal.insert(GL_COLOR_ATTACHMENT14);
+    legal.insert(GL_COLOR_ATTACHMENT15);
+    for(unsigned i=0; i<mDrawBuffers.size(); ++i)
+    {
+      if(legal.find(mDrawBuffers[i]) == legal.end())
+      {
+        Log::error(Say("FBO bound but FramebufferObject::setDrawBuffers() called with non FBO compatible draw buffer '%s'.\n") << fbo_attachments[mDrawBuffers[i]]);
+        return false;
+      }
+    }
+  }
+  else
+  {
+    std::set<GLenum> legal;
+    legal.insert(GL_NONE);
+    legal.insert(GL_BACK_LEFT);
+    legal.insert(GL_BACK_RIGHT);
+    legal.insert(GL_FRONT_LEFT);
+    legal.insert(GL_FRONT_RIGHT);
+    legal.insert(GL_AUX0);
+    legal.insert(GL_AUX1);
+    legal.insert(GL_AUX2);
+    legal.insert(GL_AUX3);
+    for(unsigned i=0; i<mDrawBuffers.size(); ++i)
+    {
+      if(legal.find(mDrawBuffers[i]) == legal.end())
+      {
+        Log::error(Say("FBO not bound or not supported but FramebufferObject::setDrawBuffers() called with FBO specific draw buffer '%s'.\n") << fbo_attachments[mDrawBuffers[i]]);
+        return false;
+      }
+    }
+  }
+  return true;
+}
+//-----------------------------------------------------------------------------
+void FramebufferObject::bindDrawBuffers() const
+{
+  VL_CHECK_OGL()
+
+  VL_CHECK(!mDrawBuffers.empty())
+
+  #ifndef NDEBUG
+    checkDrawBuffers();
+  #endif
+
+  if (mDrawBuffers.size() > 1 && (Has_GL_ARB_draw_buffers||Has_GL_Version_2_0))
+  {
+    glDrawBuffers( (GLsizei)mDrawBuffers.size(), (const GLenum*)&mDrawBuffers[0] );
+    VL_CHECK_OGL() // If you are using RDB_BACK_LEFT/RIGHT make sure sure you have a double buffered gl context.
+                   // Otherwise use FramebufferObject::setDrawBuffer(RDB_FRONT_LEFT).
+  }
+  else
+  {
+    glDrawBuffer( mDrawBuffers[0] );
+    VL_CHECK_OGL() // If you are using RDB_BACK_LEFT/RIGHT make sure sure you have a double buffered gl context.
+                   // Otherwise use FramebufferObject::setDrawBuffer(RDB_FRONT_LEFT).
+    if ( mDrawBuffers.size() > 1 )
+    {
+      Log::error( "FramebufferObject::bindDrawBuffers() error:\nglDrawBuffers() not supported by the current OpenGL driver. GL_ARB_draw_buffers or OpenGL 2.0 required.\n" );
+    }
+  }
+}
+//-----------------------------------------------------------------------------
+void FramebufferObject::bindReadBuffer()
+{
+  VL_CHECK_OGL();
+
+  glReadBuffer( readBuffer() );
+
+  VL_CHECK_OGL();
+}
 //-----------------------------------------------------------------------------
 void FramebufferObject::createFBO()
 {
@@ -76,7 +200,7 @@ void FramebufferObject::createFBO()
 
   if ( !mHandle )
   {
-    VL_glGenFramebuffers( 1, ( unsigned int* )&mHandle ); VL_CHECK_OGL();
+    glGenFramebuffers( 1, ( unsigned int* )&mHandle ); VL_CHECK_OGL();
   }
   VL_CHECK( mHandle )
 }
@@ -90,8 +214,8 @@ void FramebufferObject::deleteFBO()
   removeAllAttachments();
   if ( handle() )
   {
-    VL_glBindFramebuffer( GL_FRAMEBUFFER, 0 ); VL_CHECK_OGL();
-    VL_glDeleteFramebuffers( 1, &mHandle ); VL_CHECK_OGL();
+    glBindFramebuffer( GL_FRAMEBUFFER, 0 ); VL_CHECK_OGL();
+    glDeleteFramebuffers( 1, &mHandle ); VL_CHECK_OGL();
     mHandle = 0;
   }
   setWidth( 0 );
@@ -103,6 +227,10 @@ void FramebufferObject::bindFramebuffer( EFramebufferBind target )
   VL_CHECK_OGL();
   VL_CHECK(openglContext());
   openglContext()->makeCurrent(); VL_CHECK_OGL();
+
+  if ( externallyManaged() ) {
+    return;
+  }
 
   if ( !Has_FBO )
   {
@@ -116,41 +244,51 @@ void FramebufferObject::bindFramebuffer( EFramebufferBind target )
     VL_TRAP()
   }
 
-  if ( mFBOAttachments.empty() )
+  // This is an error only if not default framebuffer
+  if ( handle() != 0 && mFBOAttachments.empty() )
   {
     Log::error( "FramebufferObject::bindFramebuffer() called with no attachment points!\n" );
     VL_TRAP()
   }
 
+  /* handle() == 0: default framebuffer
   if ( !handle() )
   {
     Log::error( "FramebufferObject::bindFramebuffer() called but handle() == NULL!\n" );
     VL_TRAP()
   }
+  */
 
-  VL_glBindFramebuffer( target, handle() ); VL_CHECK_OGL()
+   glBindFramebuffer( target, handle() ); VL_CHECK_OGL()
 
 #if defined(VL_OPENGL)
   // bind draw buffers
-  if (target == FBB_FRAMEBUFFER || target == FBB_DRAW_FRAMEBUFFER)
+  if ( target == FBB_FRAMEBUFFER || target == FBB_DRAW_FRAMEBUFFER ) 
+  {
     bindDrawBuffers();
+  }
 
   // bind read buffer
-  if (target == FBB_FRAMEBUFFER || target == FBB_READ_FRAMEBUFFER)
+  if ( target == FBB_FRAMEBUFFER || target == FBB_READ_FRAMEBUFFER ) 
+  {
     bindReadBuffer();
+  }
 #endif
 
   #ifndef NDEBUG
-    GLenum status = VL_glCheckFramebufferStatus( GL_FRAMEBUFFER ); VL_CHECK_OGL()
+  if ( handle() )
+  {
+    GLenum status = glCheckFramebufferStatus( GL_FRAMEBUFFER ); VL_CHECK_OGL()
     if ( status != GL_FRAMEBUFFER_COMPLETE )
     {
-      VL_glBindFramebuffer( GL_FRAMEBUFFER, 0 ); VL_CHECK_OGL()
+      printFramebufferError( status );
+      glBindFramebuffer( GL_FRAMEBUFFER, 0 ); VL_CHECK_OGL()
     }
-    printFramebufferError( status );
+  }
   #endif
 }
 //-----------------------------------------------------------------------------
-//! Returns 0 if no FBO support is found otherwise returns the value obtained by VL_glCheckFramebufferStatus()
+//! Returns 0 if no FBO support is found otherwise returns the value obtained by glCheckFramebufferStatus()
 GLenum FramebufferObject::checkFramebufferStatus()
 {
   VL_CHECK_OGL();
@@ -185,7 +323,7 @@ GLenum FramebufferObject::checkFramebufferStatus()
   ScopedFBOBinding fbo_bind( this );
 
   // checks error
-  GLenum status = VL_glCheckFramebufferStatus( GL_FRAMEBUFFER ); VL_CHECK_OGL()
+  GLenum status = glCheckFramebufferStatus( GL_FRAMEBUFFER ); VL_CHECK_OGL()
 
   // restore the FBO
   if ( globalSettings()->verbosityLevel() >= vl::VEL_VERBOSITY_NORMAL )
@@ -324,11 +462,11 @@ void FramebufferObject::removeAttachment( EAttachmentPoint attach_point )
     int fbo = -1;
     glGetIntegerv( GL_FRAMEBUFFER_BINDING, &fbo ); VL_CHECK_OGL()
     // bind this fbo
-    VL_glBindFramebuffer( GL_FRAMEBUFFER, handle() ); VL_CHECK_OGL()
+    glBindFramebuffer( GL_FRAMEBUFFER, handle() ); VL_CHECK_OGL()
     // detach should work for any kind of buffer and texture
-    VL_glFramebufferRenderbuffer( GL_FRAMEBUFFER, attach_point, GL_RENDERBUFFER, 0 ); VL_CHECK_OGL()
+    glFramebufferRenderbuffer( GL_FRAMEBUFFER, attach_point, GL_RENDERBUFFER, 0 ); VL_CHECK_OGL()
     // restore fbo
-    VL_glBindFramebuffer( GL_FRAMEBUFFER, fbo ); VL_CHECK_OGL()
+    glBindFramebuffer( GL_FRAMEBUFFER, fbo ); VL_CHECK_OGL()
   }
   // remove FramebufferObject from FBOAbstractAttachment
   FBOAbstractAttachment* fbo_attachment = /* mFBOAttachments.find( attachment ) != mFBOAttachments.end() ? */ mFBOAttachments[attach_point].get() /* : NULL */;
@@ -367,7 +505,7 @@ void FBOTexture1DAttachment::bindAttachment( FramebufferObject* fbo, EAttachment
   // binds the FBO for this function call
   ScopedFBOBinding fbo_bind( fbo );
 
-  VL_glFramebufferTexture1D( GL_FRAMEBUFFER, attach_point, GL_TEXTURE_1D, texture()->handle(), mipmapLevel() ); VL_CHECK_OGL()
+  glFramebufferTexture1D( GL_FRAMEBUFFER, attach_point, GL_TEXTURE_1D, texture()->handle(), mipmapLevel() ); VL_CHECK_OGL()
 
   // needed to make non-mipmapped textures work with FBO, see framebuffer_object.txt line 442
   glBindTexture( texture()->dimension(), texture()->handle() ); VL_CHECK_OGL()
@@ -398,7 +536,7 @@ void FBOTexture2DAttachment::bindAttachment( FramebufferObject* fbo, EAttachment
     }
   #endif
 
-  VL_glFramebufferTexture2D( GL_FRAMEBUFFER, attach_point, target, texture()->handle(), mipmapLevel() ); VL_CHECK_OGL()
+  glFramebufferTexture2D( GL_FRAMEBUFFER, attach_point, target, texture()->handle(), mipmapLevel() ); VL_CHECK_OGL()
 
   // needed to make non-mipmapped textures work with FBO, see framebuffer_object.txt line 442
   if ( texture()->dimension() != TD_TEXTURE_2D_MULTISAMPLE )
@@ -419,7 +557,7 @@ void FBOTextureAttachment::bindAttachment( FramebufferObject* fbo, EAttachmentPo
   // binds the FBO for this function call
   ScopedFBOBinding fbo_bind( fbo );
 
-  VL_glFramebufferTexture( GL_FRAMEBUFFER, attach_point, texture()->handle(), mipmapLevel() ); VL_CHECK_OGL()
+  glFramebufferTexture( GL_FRAMEBUFFER, attach_point, texture()->handle(), mipmapLevel() ); VL_CHECK_OGL()
 
   // needed to make non-mipmapped textures work with FBO, see framebuffer_object.txt line 442
   if ( texture()->dimension() != TD_TEXTURE_2D_MULTISAMPLE )
@@ -446,7 +584,7 @@ void FBOTexture3DAttachment::bindAttachment( FramebufferObject* fbo, EAttachment
   // binds the FBO for this function call
   ScopedFBOBinding fbo_bind( fbo );
 
-  VL_glFramebufferTexture3D( GL_FRAMEBUFFER, attach_point, texture()->dimension(), texture()->handle(), mipmapLevel(), layer() ); VL_CHECK_OGL()
+  glFramebufferTexture3D( GL_FRAMEBUFFER, attach_point, texture()->dimension(), texture()->handle(), mipmapLevel(), layer() ); VL_CHECK_OGL()
 
   // needed to make non-mipmapped textures work with FBO, see framebuffer_object.txt line 442
   if ( texture()->dimension() != TD_TEXTURE_2D_MULTISAMPLE_ARRAY )
@@ -476,7 +614,7 @@ void FBOTextureLayerAttachment::bindAttachment( FramebufferObject* fbo, EAttachm
   // binds the FBO for this function call
   ScopedFBOBinding fbo_bind( fbo );
 
-  VL_glFramebufferTextureLayer( GL_FRAMEBUFFER, attach_point, texture()->handle(), mipmapLevel(), layer() ); VL_CHECK_OGL()
+  glFramebufferTextureLayer( GL_FRAMEBUFFER, attach_point, texture()->handle(), mipmapLevel(), layer() ); VL_CHECK_OGL()
 
   // needed to make non-mipmapped textures work with FBO, see framebuffer_object.txt line 442
   if ( texture()->dimension() != TD_TEXTURE_2D_MULTISAMPLE_ARRAY )
@@ -502,7 +640,7 @@ void FBORenderbufferAttachment::createRenderBuffer()
     return;
   if ( !mHandle )
   {
-    VL_glGenRenderbuffers( 1, &mHandle ); VL_CHECK_OGL()
+    glGenRenderbuffers( 1, &mHandle ); VL_CHECK_OGL()
     mReallocateRenderbuffer = true;
   }
   VL_CHECK( mHandle )
@@ -521,7 +659,7 @@ void FBORenderbufferAttachment::deleteRenderBuffer()
   mHeight = 0;
   if ( mHandle )
   {
-    VL_glDeleteRenderbuffers( 1, &mHandle ); VL_CHECK_OGL()
+    glDeleteRenderbuffers( 1, &mHandle ); VL_CHECK_OGL()
     mHandle = 0;
     mReallocateRenderbuffer = true;
   }
@@ -541,19 +679,19 @@ void FBORenderbufferAttachment::initStorage( int w, int h, int samp )
     mWidth  = w;
     mHeight = h;
     mSamples = samp;
-    VL_glBindRenderbuffer( GL_RENDERBUFFER, handle() ); VL_CHECK_OGL()
+    glBindRenderbuffer( GL_RENDERBUFFER, handle() ); VL_CHECK_OGL()
     if ( Has_FBO_Multisample )
     {
-      VL_glRenderbufferStorageMultisample( GL_RENDERBUFFER, samples(), internalType(), width(), height() ); VL_CHECK_OGL()
+      glRenderbufferStorageMultisample( GL_RENDERBUFFER, samples(), internalType(), width(), height() ); VL_CHECK_OGL()
     }
     else
     {
       VL_CHECK(samples() == 0)
       if (samples())
         Log::error("FBORenderbufferAttachment::initStorage() requesting multisampling storage but current OpenGL implementation does not support it!\n");
-      VL_glRenderbufferStorage( GL_RENDERBUFFER, internalType(), width(), height() ); VL_CHECK_OGL()
+      glRenderbufferStorage( GL_RENDERBUFFER, internalType(), width(), height() ); VL_CHECK_OGL()
     }
-    VL_glBindRenderbuffer( GL_RENDERBUFFER, 0 ); VL_CHECK_OGL()
+    glBindRenderbuffer( GL_RENDERBUFFER, 0 ); VL_CHECK_OGL()
     mReallocateRenderbuffer = false;
   }
 }
@@ -579,6 +717,5 @@ void FBORenderbufferAttachment::bindAttachment( FramebufferObject* fbo, EAttachm
   initStorage( actual_w, actual_h, samples() );
 
   // attach the renderbuffer to the framebuffer's attachment point
-  VL_glFramebufferRenderbuffer( GL_FRAMEBUFFER, attach_point, GL_RENDERBUFFER, handle() ); VL_CHECK_OGL()
+  glFramebufferRenderbuffer( GL_FRAMEBUFFER, attach_point, GL_RENDERBUFFER, handle() ); VL_CHECK_OGL()
 }
-//-----------------------------------------------------------------------------

@@ -329,6 +329,7 @@ void A3DSLoader::read_MATERIAL_BLOCK()
     {
       mat.mDoubleSided = true;
     }
+    break;
     // Texture map 1
     case ID_MAT_TEXMAP:
     {
@@ -880,7 +881,7 @@ ref<ResourceDatabase> vl::load3DS(VirtualFile* file)
               texture->getTexParameter()->setWrapT(TPW_CLAMP);
               texture->getTexParameter()->setWrapR(TPW_CLAMP);
             }
-            mat_map[mat_name]->shader()->gocTextureSampler(0)->setTexture( texture.get() );
+            mat_map[mat_name]->shader()->gocTextureImageUnit(0)->setTexture( texture.get() );
           }
         }
 
