@@ -1004,6 +1004,8 @@ namespace vl
     RS_StencilMask,
     RS_StencilOp,
     RS_GLSLProgram,
+	
+	RS_TransformFeedback,
 
     RS_Light,
     RS_Light0 = RS_Light,
@@ -1559,6 +1561,12 @@ namespace vl
     SilhouetteClosed, 
     SilhouetteOpen 
   } ESilhouetteMode;
+
+  typedef enum
+  {
+      BM_SeparateAttribs = GL_SEPARATE_ATTRIBS,
+      BM_InterleavedAttribs = GL_INTERLEAVED_ATTRIBS
+  } EBufferMode;
 }
 
 #endif

@@ -1,9 +1,9 @@
 /**************************************************************************************/
 /*                                                                                    */
 /*  Visualization Library                                                             */
-/*  http://visualizationlibrary.org                                                   */
+/*  http://www.visualizationlibrary.org                                               */
 /*                                                                                    */
-/*  Copyright (c) 2005-2020, Michele Bosi                                             */
+/*  Copyright (c) 2005-2011, Michele Bosi, Fabien Mathieu							  */
 /*  All rights reserved.                                                              */
 /*                                                                                    */
 /*  Redistribution and use in source and binary forms, with or without modification,  */
@@ -29,14 +29,74 @@
 /*                                                                                    */
 /**************************************************************************************/
 
-#ifndef ExtrusionPrimitives_INCLUDE_ONCE
-#define ExtrusionPrimitives_INCLUDE_ONCE
+#include <vlGraphics/TransformFeedback.hpp>
+#include <vlGraphics/OpenGLContext.hpp>
 
+using namespace vl;
 
-
-namespace vl
+void TransformFeedback::createTransformFeedbacks()
 {
-  typedef enum { SilhouetteClosed, SilhouetteOpen } ESilhouetteMode;
+	glGenTransformFeedbacks(1, &mHandle);
 }
 
-#endif
+void TransformFeedback::bindTransformFeedback() const
+{
+	VL_CHECK_OGL();
+	
+	if ( !Has_Transform_Feedback )
+	{
+		Log::error( "TransformFeedback::bindTransformFeedback(): transform feedback not supported.\n" );
+		return;
+	}
+	if(handle() != 0)
+	{
+		glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, TransformFeedback::handle());	VL_CHECK_OGL();
+	}
+}
+
+void TransformFeedback::beginTransformFeedback( ) const
+{
+	
+	if(mHandleQuery != 0)
+		glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, mHandleQuery);
+			
+	glBeginTransformFeedback(mType);	VL_CHECK_OGL();
+}
+
+void TransformFeedback::endTransformFeedback() const
+{
+	glEndTransformFeedback();	
+	
+	if(mHandleQuery != 0)
+		glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
+		
+	VL_CHECK_OGL();
+}
+	
+void TransformFeedback::pauseTransformFeedback() const
+{
+	glPauseTransformFeedback();	VL_CHECK_OGL();
+}
+	
+void TransformFeedback::resumeTransformFeedback() const
+{
+	glResumeTransformFeedback();	VL_CHECK_OGL();
+}
+
+void TransformFeedback::setTransformFeedbackVaryings(std::list< String >& varyings)
+{
+	mVaryingsCount = varyings.size();
+	mVaryings = new char*[varyings.size()];
+	std::list< String >::iterator it;
+	int i = 0;
+	for(it = varyings.begin(); it != varyings.end(); ++it)
+	{
+		mVaryings[i] = new char[it->length()];
+		std::memcpy(mVaryings[i++], it->toStdString().c_str(), it->length() + 1);
+	}
+}
+
+char** TransformFeedback::transformFeedbackVaryings() const
+{
+	return mVaryings;
+}
